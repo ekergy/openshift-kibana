@@ -1,10 +1,7 @@
 #!/bin/bash -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-source $OPENSHIFT_ELASTICSEARCH_DIR/lib/util
+source $OPENSHIFT_KIBANA_DIR/lib/util
 
-mkdir -p $OPENSHIFT_ELASTICSEARCH_DIR/run $OPENSHIFT_DATA_DIR/{elasticsearch,elasticsearch-plugins}
-touch $OPENSHIFT_ELASTICSEARCH_DIR/env/OPENSHIFT_ELASTICSEARCH_CLUSTER
-
-_install_version ${ES_VERSION}
+mkdir -p $OPENSHIFT_KIBANA_DIR/run
 _install_kibana_version ${KIBANA_VERSION}

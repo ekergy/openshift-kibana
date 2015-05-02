@@ -2,17 +2,14 @@
 port: 5601
 
 # The host to bind the server to.
-host: "<%= ENV['OPENSHIFT_ELASTICSEARCH_IP'] %>"
+host: "<%= ENV['OPENSHIFT_KIBANA_IP'] %>"
 
 # The Elasticsearch instance to use for all your queries.
-elasticsearch_url: "http://<%= ENV['OPENSHIFT_ELASTICSEARCH_IP'] %>:9200"
-
-# Might need to use this url when application is scaled.
-#elasticsearch_url: "http://<%= ENV['OPENSHIFT_APP_DNS'] %>/<%= ENV['ELASTICSEARCH_PATH'] %>"
+elasticsearch_url: "http://<%= ENV['ES_URL'] %>:<%= ENV['ES_PORT'] %>"
 
 # preserve_elasticsearch_host true will send the hostname specified in `elasticsearch`. If you set it to false,
 # then the host you use to connect to *this* Kibana instance will be sent.
-elasticsearch_preserve_host: false
+elasticsearch_preserve_host: true
 
 # Kibana uses an index in Elasticsearch to store saved searches, visualizations
 # and dashboards. It will create a new index if it doesn't already exist.
@@ -22,8 +19,10 @@ kibana_index: ".kibana"
 # used by the Kibana server to perform maintence on the kibana_index at statup. Your Kibana
 # users will still need to authenticate with Elasticsearch (which is proxied thorugh
 # the Kibana server)
-#kibana_elasticsearch_username: kibana
-#kibana_elasticsearch_password: elastic
+<% unless ( ENV['ES_USERNAME'].nil? )  %>
+kibana_elasticsearch_username: "<%= ENV['ES_USERNAME'] %>"
+kibana_elasticsearch_password: "<%= ENV['ES_PASSWORD'] %>"
+<% end %>
 
 # If your Elasticsearch requires client certificate and key
 # kibana_elasticsearch_client_crt: /path/to/your/client.crt
@@ -53,7 +52,7 @@ verify_ssl: true
 # ssl_cert_file: /path/to/your/server.crt
 
 # Set the path to where you would like the process id file to be created.
-pid_file: <%= ENV['OPENSHIFT_ELASTICSEARCH_DIR'] %>/run/kibana.pid
+pid_file: <%= ENV['OPENSHIFT_KIBANA_DIR'] %>/run/kibana.pid
 
 # Plugins that are included in the build, and no longer found in the plugins/ folder
 bundled_plugin_ids:
