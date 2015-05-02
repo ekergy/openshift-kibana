@@ -48,7 +48,7 @@ fi
 
 
 cd $src_dir/nginx-$nginx_ver/
-./configure --with-pcre=$src_dir/pcre-$pcre_ver/ --with-http_ssl_module --prefix=$OPENSHIFT_ELASTICSEARCH_DIR
+./configure --with-pcre=$src_dir/pcre-$pcre_ver/ --with-http_ssl_module --prefix=$OPENSHIFT_KIBANA_DIR
 make
 cp -f objs/nginx $bin_dir
 make clean

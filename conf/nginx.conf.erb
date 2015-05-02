@@ -1,5 +1,5 @@
-error_log  <%= ENV['OPENSHIFT_ELASTICSEARCH_DIR'] %>logs/error.log;
-pid        <%= ENV['OPENSHIFT_ELASTICSEARCH_DIR'] %>run/nginx.pid;
+error_log  <%= ENV['OPENSHIFT_KIBANA_DIR'] %>logs/error.log;
+pid        <%= ENV['OPENSHIFT_KIBANA_DIR'] %>run/nginx.pid;
 
 worker_processes  2;
 
@@ -26,7 +26,7 @@ http {
                         '$request_time '
                         '$upstream_response_time';
 
-    access_log  <%= ENV['OPENSHIFT_ELASTICSEARCH_DIR'] %>logs/access.log  logstash;
+    access_log  <%= ENV['OPENSHIFT_KIBANA_DIR'] %>logs/access.log  logstash;
 
     sendfile  on;
     gzip      on;

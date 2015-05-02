@@ -1,19 +1,7 @@
 #!/bin/bash -e
 
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
-source $OPENSHIFT_ELASTICSEARCH_DIR/lib/util
-
-function _is_running() {
-  if [ -f $ES_PID_FILE ]; then
-    local zpid=$(cat $ES_PID_FILE 2> /dev/null)
-    local myid=$(id -u)
-    if `ps -opid,args --pid $zpid 2>&1 &> /dev/null`; then
-      return 0
-    fi
-  fi
-
-  return 1
-}
+source $OPENSHIFT_KIBANA_DIR/lib/util
 
 function _is_nginx_running() {
   if [ -f $NGINX_PID_FILE ]; then
@@ -40,20 +28,12 @@ function _is_kibana_running() {
 }
 
 function start() {
-  if _is_running; then
-    echo "ElasticSearch is already running" 1>&2
+  if _is_kibana_running; then
+    echo "Kibana is already running" 1>&2
     return 0
   fi
 
   _build_config
-
-  echo "Starting ElasticSearch"
-  export PUBLISH_HOST=$(python -c "import socket; print socket.gethostbyname('`hostname`')")
-  export ES_HEAP_SIZE="`_es_heap_size`"
-  export ES_INCLUDE="$OPENSHIFT_REPO_DIR/config/elasticsearch.in.sh"
-
-  # add -d before -p to run in background
-  $OPENSHIFT_ELASTICSEARCH_DIR/usr/bin/elasticsearch -d -p $ES_PID_FILE -D "es.path.conf=$ES_CONFIG_DIR"
 
   echo "Starting Nginx"
   if [ -f "$NGINX_EXEC" ]; then
@@ -71,24 +51,16 @@ function start() {
   if [ -f "$OPENSHIFT_REPO_DIR/kibana.yml.erb" ]; then
       oo-erb $OPENSHIFT_REPO_DIR/kibana.yml.erb > $OPENSHIFT_REPO_DIR/kibana.yml
       # copy to right location
-      cp $OPENSHIFT_REPO_DIR/kibana.yml $OPENSHIFT_ELASTICSEARCH_DIR/kibana/config/kibana.yml
-    	cp $OPENSHIFT_REPO_DIR/kibana.yml $OPENSHIFT_ELASTICSEARCH_DIR/kibana/src/config/kibana.yml
+      cp $OPENSHIFT_REPO_DIR/kibana.yml $OPENSHIFT_KIBANA_DIR/kibana/config/kibana.yml
+    	cp $OPENSHIFT_REPO_DIR/kibana.yml $OPENSHIFT_KIBANA_DIR/kibana/src/config/kibana.yml
   fi
 
-  # Make sure elasticsearch is up and running first
-  esUrl="http://$OPENSHIFT_ELASTICSEARCH_IP:$OPENSHIFT_ELASTICSEARCH_PORT/$ELASTICSEARCH_PATH"
-  counter=0
-  until [ $(curl -s -o /dev/null -w '%{http_code}\n' $esUrl) -ge 500 -o $counter -gt 6 ]; do
-    echo "counter $counter"
-    let counter=counter+1
-    sleep 10
-  done
-  bash -c "$OPENSHIFT_ELASTICSEARCH_DIR/kibana/bin/kibana > $OPENSHIFT_ELASTICSEARCH_DIR/logs/kibana.log &"
+  bash -c "$OPENSHIFT_KIBANA_DIR/kibana/bin/kibana > $OPENSHIFT_KIBANA_DIR/logs/kibana.log &"
 }
 
 function stop() {
-  if ! _is_running; then
-    echo "ElasticSearch is already stopped" 1>&2
+  if ! _is_kibana_running; then
+    echo "Kibana is already stopped" 1>&2
     return 0
   fi
 
@@ -97,24 +69,6 @@ function stop() {
       pid=`cat "$NGINX_PID_FILE" 2> /dev/null`
       eval "'$NGINX_EXEC' -c '$NGINX_CONFIG_FILE' -s stop"
       wait_for_stop $pid
-  fi
-
-  echo "Stopping ElasticSearch"
-  if [ -f $ES_PID_FILE ]; then
-    local zpid=$(cat $ES_PID_FILE 2> /dev/null)
-  fi
-
-  if [ -n $zpid ]; then
-    /bin/kill $zpid
-    local ret=$?
-    if [ $ret -eq 0 ]; then
-      local TIMEOUT=10
-      while [ $TIMEOUT -gt 0 ] &&  _is_running ; do
-        /bin/kill -0 "$zpid" > /dev/null 2>&1  ||  break
-        sleep 1
-        let TIMEOUT=${TIMEOUT}-1
-      done
-    fi
   fi
 
   echo "Stopping Kibana"
@@ -128,7 +82,7 @@ function stop() {
     local ret=$?
     if [ $ret -eq 0 ]; then
       local TIMEOUT=10
-      while [ $TIMEOUT -gt 0 ] &&  _is_running ; do
+      while [ $TIMEOUT -gt 0 ] &&  _is_kibana_running ; do
         /bin/kill -0 "$zpid" > /dev/null 2>&1  ||  break
         sleep 1
         let TIMEOUT=${TIMEOUT}-1
@@ -154,12 +108,9 @@ function status() {
 
 function deploy() {
   _install_kibana_version ${KIBANA_VERSION}
- _install_plugins
 }
 
 function tidy() {
-    client_message "Emptying log dir: $OPENSHIFT_ELASTICSEARCH_DIR/logs"
-    shopt -s dotglob
     rm -rf logs/*
 }
 function update() {
