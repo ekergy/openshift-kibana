@@ -18,7 +18,7 @@ function _install_kibana_version()
 
 	echo Downloading version $VERSION
 	mkdir $OPENSHIFT_KIBANA_DIR/kibana
-	curl https://download.elasticsearch.org/kibana/kibana/kibana-$VERSION-linux-x64.tar.gz | tar xzf - --strip-components=1 -C $OPENSHIFT_KIBANA_DIR/kibana
+	curl https://download.elastic.co/kibana/kibana/kibana-4.4.1-linux-x64.tar.gz | tar xzf - --strip-components=1 -C $OPENSHIFT_KIBANA_DIR/kibana
 }
 
 
