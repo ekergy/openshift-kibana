@@ -40,4 +40,4 @@ Endpoints:
     - Frontend: "/health"
       Backend: ""
       Options: { health: true }
-Source-Url: https://github.com/abraverm/openshift-kibana.git
+Source-Url: https://github.com/ekergy/openshift-kibana.git
